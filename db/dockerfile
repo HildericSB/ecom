@@ -1,0 +1,4 @@
+FROM mariadb:lts
+
+WORKDIR /docker-entrypoint-initdb.d
+COPY . ./
