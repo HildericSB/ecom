@@ -6,7 +6,10 @@ COPY . ./
 
 RUN docker-php-ext-install mysqli
 
-ENV DB_HOST=mysql-service
+ENV DB_HOST="db"
+ENV DB_NAME="ecomdb"
+ENV DB_USER="ecomuser"
+ENV DB_PASSWORD="ecompassword"
 
 EXPOSE 80
 

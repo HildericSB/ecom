@@ -19,6 +19,9 @@ spec:
       containers:
       - name: ecommerce
         image: hilderoc/ecomweb2:latest
+        env:
+          - name: DB_HOST
+            value: "mariadb"  #This should match the MariaDB service name
         ports:
         - containerPort: 80
 

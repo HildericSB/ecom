@@ -1,0 +1,14 @@
+# Used during DEV to deploy both DB and Front containers
+services:
+  frontend:
+    image: hilderoc/ecomweb2
+    ports:
+      - "8080:80"
+
+
+  db:
+    image: hilderoc/ecomdb
+    ports:
+      - "3306:3306"
+    environment:
+      MARIADB_ROOT_PASSWORD: "password"

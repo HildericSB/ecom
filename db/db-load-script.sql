@@ -1,6 +1,6 @@
 CREATE DATABASE ecomdb;
-CREATE USER 'ecomuser'@'localhost' IDENTIFIED BY 'ecompassword';
-GRANT ALL PRIVILEGES ON *.* TO 'ecomuser'@'localhost';
+CREATE USER 'ecomuser'@'%' IDENTIFIED BY 'ecompassword';
+GRANT ALL PRIVILEGES ON *.* TO 'ecomuser'@'%';
 FLUSH PRIVILEGES;
 
 USE ecomdb;
