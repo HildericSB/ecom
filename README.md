@@ -1,179 +1,172 @@
-# Introduction
+https://cloudresumechallenge.dev/docs/extensions/kubernetes-challenge/
 
-This is a sample e-commerce application built for learning purposes.
+# Intro
 
-Here's how to deploy it on CentOS systems:
+Imagine you are going to deploy an e-commerce website. It's crucial to consider the challenges of modern web application deployment and how containerization and Kubernetes (K8s) offer compelling solutions:
 
-## Deploy Pre-Requisites
+* Scalability: How can your application automatically adjust to fluctuating traffic?
+* Consistency: How do you ensure your application runs the same across all environments?
+* Availability: How can you update your application with zero downtime?
 
-1. Install FirewallD
+Containerization, using Docker, encapsulates your application and its environment, ensuring it runs consistently everywhere. Kubernetes, a container orchestration platform, automates deployment, scaling, and management, offering:
 
-```
-sudo yum install -y firewalld
-sudo systemctl start firewalld
-sudo systemctl enable firewalld
-sudo systemctl status firewalld
-```
+* Dynamic Scaling: Adjusts application resources based on demand
+* Self-healing: Restarts failed containers and reschedules them on healthy nodes
+* Seamless Updates & Rollbacks: Enables zero-downtime updates and easy rollbacks
 
-## Deploy and Configure Database
+By leveraging Kubernetes and containerization for your challenge, you embrace a scalable, consistent, and resilient deployment strategy. This not only demonstrates your technical acumen but aligns with modern DevOps practices.
 
-1. Install MariaDB
+Dive into KodeKloud's Docker Learning Path and Kubernetes Learning Path by KodeKloud to master these technologies, enhancing your project and preparing you for a future in cloud computing and DevOps.
 
-```
-sudo yum install -y mariadb-server
-sudo vi /etc/my.cnf
-sudo systemctl start mariadb
-sudo systemctl enable mariadb
-```
+# Challenge Guide
 
-2. Configure firewall for Database
+## Prerequisites
 
-```
-sudo firewall-cmd --permanent --zone=public --add-port=3306/tcp
-sudo firewall-cmd --reload
-```
+Before you embark on this journey, ensure you are equipped with:
 
-3. Configure Database
+* Docker and Kubernetes CLI Tools: Essential for building, pushing Docker images, and managing Kubernetes resources
+* Cloud Provider Account: Access to AWS, Azure, or GCP for creating a Kubernetes cluster
+* GitHub Account: For version control and implementing CI/CD pipelines
+* Kubernetes Crash Course: This free course from KodeKloud contains a number of helpful labs to get you familiar with K8s basics
+* E-commerce Application Source Code and DB Scripts: Available at kodekloudhub/learning-app-ecommerce. Familiarize yourself with the application structure and database scripts provided
 
-```
-$ mysql
-MariaDB > CREATE DATABASE ecomdb;
-MariaDB > CREATE USER 'ecomuser'@'localhost' IDENTIFIED BY 'ecompassword';
-MariaDB > GRANT ALL PRIVILEGES ON *.* TO 'ecomuser'@'localhost';
-MariaDB > FLUSH PRIVILEGES;
-```
+## Step-by-Step Implementation
 
-> ON a multi-node setup remember to provide the IP address of the web server here: `'ecomuser'@'web-server-ip'`
+### Step 1: Certification
 
-4. Load Product Inventory Information to database
+KodeKloud CKAD Course: To ensure you have a solid understanding of Kubernetes concepts and practical experience, complete the Certified Kubernetes Application Developer (CKAD) course by KodeKloud. This course will equip you with the knowledge and skills needed to tackle this challenge effectively.
 
-Create the db-load-script.sql
+### Step 2: Containerize Your E-Commerce Website and Database
 
-```
-cat > db-load-script.sql <<-EOF
-USE ecomdb;
-CREATE TABLE products (id mediumint(8) unsigned NOT NULL auto_increment,Name varchar(255) default NULL,Price varchar(255) default NULL, ImageUrl varchar(255) default NULL,PRIMARY KEY (id)) AUTO_INCREMENT=1;
+#### A. Web Application Containerization
 
-INSERT INTO products (Name,Price,ImageUrl) VALUES ("Laptop","100","c-1.png"),("Drone","200","c-2.png"),("VR","300","c-3.png"),("Tablet","50","c-5.png"),("Watch","90","c-6.png"),("Phone Covers","20","c-7.png"),("Phone","80","c-8.png"),("Laptop","150","c-4.png");
+1. Create a Dockerfile: Navigate to the root of the e-commerce application and create a Dockerfile. This file should instruct Docker to:
+   * Use php:7.4-apache as the base image
+   * Install mysqli extension for PHP
+   * Copy the application source code to /var/www/html/
+   * Update database connection strings to point to a Kubernetes service named mysql-service
+   * Expose port 80 to allow traffic to the web server
 
-EOF
-```
+2. Build and Push the Docker Image:
+   * Execute `docker build -t yourdockerhubusername/ecom-web:v1 .` to build your image
+   * Push it to Docker Hub with `docker push yourdockerhubusername/ecom-web:v1`
+   * Outcome: Your web application Docker image is now available on Docker Hub
 
-Run sql script
+#### B. Database Containerization
 
-```
+Database Preparation: Instead of containerizing the database yourself, you'll use the official MariaDB image. Prepare the database initialization script (db-load-script.sql) to be used with Kubernetes ConfigMaps or as an entrypoint script.
 
-sudo mysql < db-load-script.sql
-```
+### Step 3: Set Up Kubernetes on a Public Cloud Provider
 
+1. Cluster Creation: Choose AWS (EKS), Azure (AKS), or GCP (GKE) and follow their documentation to create a Kubernetes cluster. Ensure you have kubectl configured to interact with your cluster.
+2. Outcome: A fully operational Kubernetes cluster ready for deployment.
 
-## Deploy and Configure Web
+### Step 4: Deploy Your Website to Kubernetes
 
-1. Install required packages
+1. Kubernetes Deployment: Create a website-deployment.yaml defining a Deployment that uses the Docker image created in Step 1A. Ensure the Deployment specifies the necessary environment variables and mounts for the database connection.
+2. Outcome: The e-commerce web application is running on Kubernetes, with pods managed by the Deployment.
 
-```
-sudo yum install -y httpd php php-mysqlnd
-sudo firewall-cmd --permanent --zone=public --add-port=80/tcp
-sudo firewall-cmd --reload
-```
+### Step 5: Expose Your Website
 
-2. Configure httpd
+1. Service Creation: Define a website-service.yaml to create a Service of type LoadBalancer. This Service exposes your Deployment to the internet.
+2. Outcome: An accessible URL or IP address for your web application.
 
-Change `DirectoryIndex index.html` to `DirectoryIndex index.php` to make the php page the default page
+### Step 6: Implement Configuration Management
 
-```
-sudo sed -i 's/index.html/index.php/g' /etc/httpd/conf/httpd.conf
-```
+Task: Add a feature toggle to the web application to enable a "dark mode" for the website.
 
-3. Start httpd
+1. Modify the Web Application: Add a simple feature toggle in the application code (e.g., an environment variable FEATURE_DARK_MODE that enables a CSS dark theme)
+2. Use ConfigMaps: Create a ConfigMap named feature-toggle-config with the data FEATURE_DARK_MODE=true
+3. Deploy ConfigMap: Apply the ConfigMap to your Kubernetes cluster
+4. Update Deployment: Modify the website-deployment.yaml to include the environment variable from the ConfigMap
+5. Outcome: Your website should now render in dark mode, demonstrating how ConfigMaps manage application features
 
-```
-sudo systemctl start httpd
-sudo systemctl enable httpd
-```
+### Step 7: Scale Your Application
 
-4. Download code
+Task: Prepare for a marketing campaign expected to triple traffic.
 
-```
-sudo yum install -y git
-sudo git clone https://github.com/kodekloudhub/learning-app-ecommerce.git /var/www/html/
-```
+1. Evaluate Current Load: Use `kubectl get pods` to assess the current number of running pods
+2. Scale Up: Increase replicas in your deployment or use `kubectl scale deployment/ecom-web --replicas=6` to handle the increased load
+3. Monitor Scaling: Observe the deployment scaling up with `kubectl get pods`
+4. Outcome: The application scales up to handle increased traffic, showcasing Kubernetes' ability to manage application scalability dynamically
 
-<!-- 5. Update index.php
+### Step 8: Perform a Rolling Update
 
-Update [index.php](https://github.com/kodekloudhub/learning-app-ecommerce/blob/13b6e9ddc867eff30368c7e4f013164a85e2dccb/index.php#L107) file to connect to the right database server. In this case `localhost` since the database is on the same server.
+Task: Update the website to include a new promotional banner for the marketing campaign.
 
-```
-sudo sed -i 's/172.20.1.101/localhost/g' /var/www/html/index.php
+1. Update Application: Modify the web application's code to include the promotional banner
+2. Build and Push New Image: Build the updated Docker image as yourdockerhubusername/ecom-web:v2 and push it to Docker Hub
+3. Rolling Update: Update website-deployment.yaml with the new image version and apply the changes
+4. Monitor Update: Use `kubectl rollout status deployment/ecom-web` to watch the rolling update process
+5. Outcome: The website updates with zero downtime, demonstrating rolling updates' effectiveness in maintaining service availability
 
-              <?php
-                        $link = mysqli_connect('172.20.1.101', 'ecomuser', 'ecompassword', 'ecomdb');
-                        if ($link) {
-                        $res = mysqli_query($link, "select * from products;");
-                        while ($row = mysqli_fetch_assoc($res)) { ?>
-```
+### Step 9: Roll Back a Deployment
 
-> ON a multi-node setup remember to provide the IP address of the database server here.
-```
-sudo sed -i 's/172.20.1.101/localhost/g' /var/www/html/index.php
-```
--->
+Task: Suppose the new banner introduced a bug. Roll back to the previous version.
 
-5. Create and Configure the `.env` File
+1. Identify Issue: After deployment, monitoring tools indicate a problem affecting user experience
+2. Roll Back: Execute `kubectl rollout undo deployment/ecom-web` to revert to the previous deployment state
+3. Verify Rollback: Ensure the website returns to its pre-update state without the promotional banner
+4. Outcome: The application's stability is quickly restored, highlighting the importance of rollbacks in deployment strategies
 
-   Create an `.env` file in the root of your project folder.
+### Step 10: Autoscale Your Application
 
-   ```sh
-   cat > /var/www/html/.env <<-EOF
-   DB_HOST=localhost
-   DB_USER=ecomuser
-   DB_PASSWORD=ecompassword
-   DB_NAME=ecomdb
-   EOF
+Task: Automate scaling based on CPU usage to handle unpredictable traffic spikes.
 
-6. Update `index.php`
+1. Implement HPA: Create a Horizontal Pod Autoscaler targeting 50% CPU utilization, with a minimum of 2 and a maximum of 10 pods
+2. Apply HPA: Execute `kubectl autoscale deployment ecom-web --cpu-percent=50 --min=2 --max=10`
+3. Simulate Load: Use a tool like Apache Bench to generate traffic and increase CPU load
+4. Monitor Autoscaling: Observe the HPA in action with `kubectl get hpa`
+5. Outcome: The deployment automatically adjusts the number of pods based on CPU load, showcasing Kubernetes' capability to maintain performance under varying loads
 
-   Update the `index.php` file to load the environment variables from the `.env` file and use them to connect to the database.
+### Step 11: Implement Liveness and Readiness Probes
 
-   ```php
-   <?php
-   // Function to load environment variables from a .env file
-   function loadEnv($path)
-   {
-       if (!file_exists($path)) {
-           return false;
-       }
+Task: Ensure the web application is restarted if it becomes unresponsive and doesn't receive traffic until ready.
 
-       $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-       foreach ($lines as $line) {
-           if (strpos(trim($line), '#') === 0) {
-               continue;
-           }
+1. Define Probes: Add liveness and readiness probes to website-deployment.yaml, targeting an endpoint in your application that confirms its operational status
+2. Apply Changes: Update your deployment with the new configuration
+3. Test Probes: Simulate failure scenarios (e.g., manually stopping the application) and observe Kubernetes' response
+4. Outcome: Kubernetes automatically restarts unresponsive pods and delays traffic to newly started pods until they're ready, enhancing the application's reliability and availability
 
-           list($name, $value) = explode('=', $line, 2);
-           $name = trim($name);
-           $value = trim($value);
-           putenv(sprintf('%s=%s', $name, $value));
-       }
-       return true;
-   }
+### Step 12: Utilize ConfigMaps and Secrets
 
-   // Load environment variables from .env file
-   loadEnv(__DIR__ . '/.env');
+Task: Securely manage the database connection string and feature toggles without hardcoding them in the application.
 
-   // Retrieve the database connection details from environment variables
-   $dbHost = getenv('DB_HOST');
-   $dbUser = getenv('DB_USER');
-   $dbPassword = getenv('DB_PASSWORD');
-   $dbName = getenv('DB_NAME');
+1. Create Secret and ConfigMap: For sensitive data like DB credentials, use a Secret. For non-sensitive data like feature toggles, use a ConfigMap
+2. Update Deployment: Reference the Secret and ConfigMap in the deployment to inject these values into the application environment
+3. Outcome: Application configuration is externalized and securely managed, demonstrating best practices in configuration and secret management
 
-   ?>
+### Step 13: Document Your Process
 
-   ON a multi-node setup, remember to provide the IP address of the database server in the .env file.
+1. Finalize Your Project Code: Ensure your project is complete and functioning as expected. Test all features locally and document all dependencies clearly
+2. Create a Git Repository: Create a new repository on your preferred git hosting service (e.g., GitHub, GitLab, Bitbucket)
+3. Push Your Code to the Remote Repository
+4. Write Documentation: Create a README.md or a blog post detailing each step, decisions made, and how challenges were overcome
 
+## Extra credit
 
-7. Test
+### Package Everything in Helm
 
-```
-curl http://localhost
-```
+Task: Utilize Helm to package your application, making deployment and management on Kubernetes clusters more efficient and scalable.
+
+1. Create Helm Chart: Start by creating a Helm chart for your application. This involves setting up a chart directory with the necessary templates for your Kubernetes resources
+2. Define Values: Customize your application deployment by defining variables in the values.yaml file. This allows for flexibility and reusability of your Helm chart across different environments or configurations
+3. Package and Deploy: Use Helm commands to package your application into a chart and deploy it to your Kubernetes cluster. Ensure to test your chart to verify that all components are correctly configured and working as expected
+4. Outcome: Your application is now packaged as a Helm chart, simplifying deployment processes and enabling easy versioning and rollback capabilities
+
+For more details, follow KodeKloud Helm Course.
+
+### Implement Persistent Storage
+
+Task: Ensure data persistence for the MariaDB database across pod restarts and redeployments.
+
+1. Create a PVC: Define a PersistentVolumeClaim for MariaDB storage needs
+2. Update MariaDB Deployment: Modify the deployment to use the PVC for storing database data
+3. Outcome: Database data persists beyond the lifecycle of MariaDB pods, ensuring data durability
+
+### Implement Basic CI/CD Pipeline
+
+Task: Automate the build and deployment process using GitHub Actions.
+
+1. GitHub Actions Workflow: Create a .github/workflows/deploy.yml file to build the Docker image, push it to Docker Hub, and update the Kubernetes deployment upon push to the main branch
+2. Outcome: Changes to the application are automatically built and deployed, showcasing an efficient CI/CD pipeline
