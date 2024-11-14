@@ -1,5 +1,14 @@
 # ecommerce webapp
 
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-settings
+data:
+  dark_mode: "true"
+
+---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -22,6 +31,12 @@ spec:
         env:
           - name: DB_HOST
             value: "mariadb"  #This should match the MariaDB service name
+          - name: FEATURE_DARK_MODE
+            valueFrom:
+              configMapKeyRef:
+                name: app-settings
+                key: dark_mode
+
         ports:
         - containerPort: 80
 
@@ -40,8 +55,9 @@ spec:
       targetPort: 80
 
 
-# ecommerce DB
 
+
+# ecommerce DB
 ---
 apiVersion: v1
 kind: Secret

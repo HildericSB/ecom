@@ -97,6 +97,18 @@
         </section>
         <!--==========End Slider area==========-->
 
+        <?php 
+            $darkMode = strtolower(getenv('FEATURE_DARK_MODE')) === "true";
+            
+            if($darkMode){?>
+                <h1>DARK MODE ENABLED</h1>
+
+        <?php
+            }
+        ?>
+
+
+
         <section class="best_business_area row">
             <div class="check_tittle wow fadeInUp" data-wow-delay="0.7s" id="product-list">
                 <h2>Product List</h2>
