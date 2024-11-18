@@ -7,6 +7,9 @@ image:
     repository: hilderoc/ecomdb
     tag: latest
 
+persistence:
+  size: "5Gi"
+
 darkMode: true
 
 replicaCount:

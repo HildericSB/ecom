@@ -23,3 +23,10 @@ spec:
               secretKeyRef:
                 name: {{ .Release.Name }}-mariadb-secret
                 key: root-password
+        volumeMounts:
+          - name : mariadb-data
+            mountPath: /var/lib/mysql
+      volumes:
+        - name: mariadb-data
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-mariadb-pvc
