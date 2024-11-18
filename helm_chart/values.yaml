@@ -1,0 +1,13 @@
+
+image:
+  frontend:
+    repository: hilderoc/ecomweb2
+    tag: latest
+  db:
+    repository: hilderoc/ecomdb
+    tag: latest
+
+darkMode: true
+
+replicaCount:
+  frontend: 2
